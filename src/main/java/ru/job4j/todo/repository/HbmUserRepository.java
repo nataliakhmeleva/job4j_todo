@@ -15,12 +15,20 @@ public class HbmUserRepository implements UserRepository {
 
     @Override
     public Optional<User> save(User user) {
+        Optional<User> users = Optional.empty();
         Session session = sf.openSession();
-        session.beginTransaction();
-        session.save(user);
-        session.getTransaction().commit();
-        session.close();
-        return Optional.of(user);
+        try {
+            session.beginTransaction();
+            session.save(user);
+            session.getTransaction().commit();
+            users = Optional.of(user);
+        } catch (Exception e) {
+            session.getTransaction().rollback();
+        } finally {
+            session.close();
+        }
+        return users;
+
     }
 
     @Override
@@ -29,9 +37,9 @@ public class HbmUserRepository implements UserRepository {
         Session session = sf.openSession();
         try {
             session.beginTransaction();
-            users = session.createQuery("from User as i where i.login = :fLogin AND i.password = :fLogin", User.class)
+            users = session.createQuery("from User as i where i.login = :fLogin AND i.password = :fPassword", User.class)
                     .setParameter("fLogin", login)
-                    .setParameter("fLogin", password)
+                    .setParameter("fPassword", password)
                     .uniqueResultOptional();
             session.getTransaction().commit();
         } catch (Exception e) {
