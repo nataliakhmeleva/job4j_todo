@@ -50,6 +50,8 @@
                         <label for="created" class="form-label"><b>Дата создания</b></label>
                         <p type="text" class="form-control" id="created"
                            th:text="${#temporals.format(task.created)}"></p>
+                        <label for="user" class="form-label"><b>Пользователь</b></label>
+                        <p type="text" class="form-control" id="user" th:text="${task.user.name}"></p>
                         <label for="done" class="form-label"><b>Состояние</b></label>
                         <p type="text" class="form-control" id="done" th:if="${task.done}" style="color: DeepSkyBlue">
                             Выполнено</p>
