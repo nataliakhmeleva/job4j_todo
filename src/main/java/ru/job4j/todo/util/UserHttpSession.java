@@ -1,4 +1,4 @@
-package ru.job4j.todo.service.util;
+package ru.job4j.todo.util;
 
 import lombok.NoArgsConstructor;
 import ru.job4j.todo.model.User;

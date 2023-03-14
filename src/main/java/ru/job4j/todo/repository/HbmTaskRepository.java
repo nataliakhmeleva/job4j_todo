@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.job4j.todo.model.Task;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,18 +42,18 @@ public class HbmTaskRepository implements TaskRepository {
 
     @Override
     public Optional<Task> findById(int id) {
-        return crudRepository.optional("from Task where id = :fId", Task.class,
+        return crudRepository.optional("FROM Task f JOIN FETCH f.priority where f.id = :fId", Task.class,
                 Map.of("fId", id));
     }
 
     @Override
-    public Collection<Task> findByDone(boolean done) {
-        return crudRepository.query("from Task as i where i.done = :fDone", Task.class,
+    public List<Task> findByDone(boolean done) {
+        return crudRepository.query("FROM Task f JOIN FETCH f.priority where f.done = :fDone", Task.class,
                 Map.of("fDone", done));
     }
 
     @Override
-    public Collection<Task> findAll() {
-        return crudRepository.query("from Task ORDER BY id ASC", Task.class);
+    public List<Task> findAll() {
+        return crudRepository.query("FROM Task f JOIN FETCH f.priority", Task.class);
     }
 }

@@ -2,7 +2,7 @@ package ru.job4j.todo.filter;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import ru.job4j.todo.service.util.UserHttpSession;
+import ru.job4j.todo.util.UserHttpSession;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -27,4 +27,3 @@ public class SessionFilter extends HttpFilter {
         request.setAttribute("user", UserHttpSession.addSession(session));
     }
 }
-

@@ -47,6 +47,8 @@
                     <div class="mb-3">
                         <label for="description" class="form-label"><b>Описание</b></label>
                         <p type="text" class="form-control" id="description" th:text="${task.description}"></p>
+                        <label for="priority" class="form-label"><b>Приоритет</b></label>
+                        <p type="text" class="form-control" id="priority" th:text="${task.priority.name}"></p>
                         <label for="created" class="form-label"><b>Дата создания</b></label>
                         <p type="text" class="form-control" id="created"
                            th:text="${#temporals.format(task.created)}"></p>

@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.job4j.todo.model.Task;
 import ru.job4j.todo.model.User;
+import ru.job4j.todo.service.PriorityService;
 import ru.job4j.todo.service.TaskService;
 
 import javax.servlet.http.HttpSession;
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpSession;
 @RequestMapping("/tasks")
 public class TaskController {
     private final TaskService taskService;
+    private final PriorityService priorityService;
 
     @GetMapping
     public String getAll(Model model) {
@@ -23,14 +25,20 @@ public class TaskController {
     }
 
     @GetMapping("/create")
-    public String getCreationPage() {
+    public String getCreationPage(Model model) {
+        model.addAttribute("priorities", priorityService.findAll());
         return "tasks/create";
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute Task task, HttpSession httpSession) {
+    public String create(@ModelAttribute Task task, Model model, HttpSession httpSession) {
         var user = (User) httpSession.getAttribute("user");
+        var priorityOptional = priorityService.findById(task.getPriority().getId());
         task.setUser(user);
+        if (priorityOptional.isEmpty()) {
+            model.addAttribute("message", "Задание не создано");
+            return "errors/404";
+        }
         taskService.save(task);
         return "redirect:/tasks";
     }
@@ -42,6 +50,7 @@ public class TaskController {
             model.addAttribute("message", "Задание не найдено");
             return "errors/404";
         }
+        model.addAttribute("priorities", priorityService.findAll());
         model.addAttribute("task", taskOptional.get());
         return "tasks/info";
     }
@@ -54,6 +63,7 @@ public class TaskController {
             return "errors/404";
         }
         model.addAttribute("task", taskOptional.get());
+        model.addAttribute("priorities", priorityService.findAll());
         return "tasks/edit";
     }
 
@@ -62,7 +72,8 @@ public class TaskController {
         var user = (User) httpSession.getAttribute("user");
         task.setUser(user);
         var isUpdated = taskService.update(task);
-        if (!isUpdated) {
+        var priorityOptional = priorityService.findById(task.getPriority().getId());
+        if (!isUpdated || priorityOptional.isEmpty()) {
             model.addAttribute("message", "Задание с указанным идентификатором не найдено");
             return "errors/404";
         }
