@@ -6,10 +6,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.job4j.todo.model.Task;
 import ru.job4j.todo.model.User;
+import ru.job4j.todo.service.CategoryService;
 import ru.job4j.todo.service.PriorityService;
 import ru.job4j.todo.service.TaskService;
 
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 @Controller
 @AllArgsConstructor
@@ -17,28 +19,33 @@ import javax.servlet.http.HttpSession;
 public class TaskController {
     private final TaskService taskService;
     private final PriorityService priorityService;
+    private final CategoryService categoryService;
 
     @GetMapping
     public String getAll(Model model) {
         model.addAttribute("tasks", taskService.findAll());
+        model.addAttribute("categories", categoryService.findAll());
         return "tasks/list";
     }
 
     @GetMapping("/create")
     public String getCreationPage(Model model) {
         model.addAttribute("priorities", priorityService.findAll());
+        model.addAttribute("categories", categoryService.findAll());
         return "tasks/create";
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute Task task, Model model, HttpSession httpSession) {
+    public String create(@ModelAttribute Task task, @RequestParam("category.id") List<Integer> list, Model model, HttpSession httpSession) {
         var user = (User) httpSession.getAttribute("user");
         var priorityOptional = priorityService.findById(task.getPriority().getId());
+        var categoriesList = categoryService.findByIdList(list);
         task.setUser(user);
-        if (priorityOptional.isEmpty()) {
+        if (priorityOptional.isEmpty() || categoriesList.isEmpty()) {
             model.addAttribute("message", "Задание не создано");
             return "errors/404";
         }
+        task.setCategories(categoriesList);
         taskService.save(task);
         return "redirect:/tasks";
     }
@@ -64,16 +71,19 @@ public class TaskController {
         }
         model.addAttribute("task", taskOptional.get());
         model.addAttribute("priorities", priorityService.findAll());
+        model.addAttribute("categories", categoryService.findAll());
         return "tasks/edit";
     }
 
     @PostMapping("/update")
-    public String update(@ModelAttribute Task task, Model model, HttpSession httpSession) {
+    public String update(@ModelAttribute Task task, @RequestParam("category.id") List<Integer> list, Model model, HttpSession httpSession) {
         var user = (User) httpSession.getAttribute("user");
-        task.setUser(user);
-        var isUpdated = taskService.update(task);
         var priorityOptional = priorityService.findById(task.getPriority().getId());
-        if (!isUpdated || priorityOptional.isEmpty()) {
+        var categoriesList = categoryService.findByIdList(list);
+        task.setUser(user);
+        task.setCategories(categoriesList);
+        var isUpdated = taskService.update(task);
+        if (!isUpdated || priorityOptional.isEmpty() || categoriesList.isEmpty()) {
             model.addAttribute("message", "Задание с указанным идентификатором не найдено");
             return "errors/404";
         }
