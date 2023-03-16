@@ -13,6 +13,8 @@ import ru.job4j.todo.service.TaskService;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
+import static ru.job4j.todo.util.UserTimeZone.addUserTimeZone;
+
 @Controller
 @AllArgsConstructor
 @RequestMapping("/tasks")
@@ -22,8 +24,11 @@ public class TaskController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public String getAll(Model model) {
-        model.addAttribute("tasks", taskService.findAll());
+    public String getAll(Model model, HttpSession httpSession) {
+        var user = (User) httpSession.getAttribute("user");
+        var tasks = taskService.findAll();
+        tasks.forEach(t -> addUserTimeZone(user, t));
+        model.addAttribute("tasks", tasks);
         model.addAttribute("categories", categoryService.findAll());
         return "tasks/list";
     }
@@ -51,12 +56,14 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public String getInformPage(Model model, @PathVariable int id) {
+    public String getInformPage(Model model, @PathVariable int id, HttpSession httpSession) {
+        var user = (User) httpSession.getAttribute("user");
         var taskOptional = taskService.findById(id);
         if (taskOptional.isEmpty()) {
             model.addAttribute("message", "Задание не найдено");
             return "errors/404";
         }
+        addUserTimeZone(user, taskOptional.get());
         model.addAttribute("priorities", priorityService.findAll());
         model.addAttribute("task", taskOptional.get());
         return "tasks/info";
